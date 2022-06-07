@@ -146,7 +146,7 @@ def main():
     
     eval_parser = subparsers.add_parser("eval", help="evaluation mode parser")
     eval_parser.add_argument("--training", type=bool, default=False)
-    eval_parser.add_argument("--run_folder", type=bool, default=False)
+    eval_parser.add_argument("--run_folder", action="store_true")
     eval_parser.add_argument("--content", type=str, default="./content/",
                                   help="content image you want to stylize")
     eval_parser.add_argument("--style", type=str, default="./style/",
