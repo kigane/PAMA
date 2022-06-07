@@ -61,7 +61,7 @@ def train(args):
             print("saving...")
             mes = "iteration: " + str(img_index+1) + " loss: "  + str(loss.sum().item())
             logging.info(mes)
-            model.module.save_ckpts()
+            model.save_ckpts()
             adjust_learning_rate(optimizer, img_index, args)
 
 
