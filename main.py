@@ -5,6 +5,7 @@ import logging
 import torch
 import torch.nn as nn
 import torch.utils.data as data
+from tqdm import tqdm
 from torchvision.utils import save_image
 from PIL import Image, ImageFile
 from net import Net
@@ -42,14 +43,15 @@ def train(args):
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
-    for img_index in range(args.iterations):
-        print("iteration :", img_index+1)
+    for img_index in (pbar := tqdm(range(args.iterations))):
         optimizer.zero_grad()
         Ic = next(content_iter).to(DEVICE)
         Is = next(style_iter).to(DEVICE)
         
         loss = model(Ic, Is)
-        print(loss)
+        pbar.set_postfix({
+            'loss': loss.item()
+        })
         loss.sum().backward()
         
         #plot_grad_flow(GMMN.named_parameters())
