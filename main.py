@@ -24,8 +24,8 @@ def train(args):
     logging.info(mes)
     model = Net(args)
     model.train()
-    device_ids = [0, 1]
-    model = nn.DataParallel(model, device_ids=device_ids)
+    # device_ids = [0, 1]
+    # model = nn.DataParallel(model, device_ids=device_ids)
     model = model.to(DEVICE)
 
     tf = train_transform()

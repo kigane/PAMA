@@ -38,7 +38,7 @@ class Net(nn.Module):
     def forward(self, Ic, Is):
         feat_c = self.forward_vgg(Ic)
         feat_s = self.forward_vgg(Is)
-        Fc, Fs = feat_c[3], feat_s[3]
+        Fc, Fs = feat_c[3], feat_s[3] # relu4-1
 
         Fcs1 = self.align1(Fc, Fs)
         Fcs2 = self.align2(Fcs1, Fs)
@@ -57,10 +57,11 @@ class Net(nn.Module):
             feat_rc = self.forward_vgg(Irc)
             feat_rs = self.forward_vgg(Irs)
 
+            # Lss, Lr, Lm, Lh
             content_loss1, remd_loss1, moment_loss1, color_loss1 = 0.0, 0.0, 0.0, 0.0
             content_loss2, remd_loss2, moment_loss2, color_loss2 = 0.0, 0.0, 0.0, 0.0
             content_loss3, remd_loss3, moment_loss3, color_loss3 = 0.0, 0.0, 0.0, 0.0
-            loss_rec = 0.0
+            loss_rec = 0.0 # Lrec
 
             for l in range(2, 5):     
                 content_loss1 += self.args.w_content1 * calc_ss_loss(feat_cs1[l], feat_c[l])
@@ -219,11 +220,11 @@ class AttentionUnit(nn.Module):
         f_Fc = f_Fc.view(f_Fc.shape[0], f_Fc.shape[1], -1).permute(0, 2, 1)
         g_Fs = g_Fs.view(g_Fs.shape[0], g_Fs.shape[1], -1)
 
-        Attention = self.softmax(torch.bmm(f_Fc, g_Fs))
+        Attention = self.softmax(torch.bmm(f_Fc, g_Fs)) # [B,HW,HW]
 
-        h_Fs = h_Fs.view(h_Fs.shape[0], h_Fs.shape[1], -1)
+        h_Fs = h_Fs.view(h_Fs.shape[0], h_Fs.shape[1], -1) # [B, C//2, HW]
 
-        Fcs = torch.bmm(h_Fs, Attention.permute(0, 2, 1))
+        Fcs = torch.bmm(h_Fs, Attention.permute(0, 2, 1)) # [B, C//2, HW]
         Fcs = Fcs.view(B, C//2, H, W)
         Fcs = self.relu6(self.out_conv(Fcs))
 

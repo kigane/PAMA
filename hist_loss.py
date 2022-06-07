@@ -91,25 +91,28 @@ class RGBuvHistBlock(nn.Module):
     hists = torch.zeros((x_sampled.shape[0], 3, self.h, self.h)).to(
       device=self.device)
     for l in range(L):
-      I = torch.t(torch.reshape(X[l], (3, -1)))
+      I = torch.t(torch.reshape(X[l], (3, -1))) # [3,HW]
       II = torch.pow(I, 2)
       if self.intensity_scale:
         Iy = torch.unsqueeze(torch.sqrt(II[:, 0] + II[:, 1] + II[:, 2] + EPS), 
                              dim=1)
       else:
         Iy = 1
-
+      # Iu0 = log(Ir)-log(Ig)
       Iu0 = torch.unsqueeze(torch.log(I[:, 0] + EPS) - torch.log(I[:, 1] + EPS),
                             dim=1)
+      # Iu0 = log(Ir)-log(Ib)
       Iv0 = torch.unsqueeze(torch.log(I[:, 0] + EPS) - torch.log(I[:, 2] + EPS),
                             dim=1)
+      # Iu0 - u
       diff_u0 = abs(
         Iu0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
                               dim=0).to(self.device))
+      # Iu0 -v
       diff_v0 = abs(
         Iv0 - torch.unsqueeze(torch.tensor(np.linspace(-3, 3, num=self.h)),
                               dim=0).to(self.device))
-      if self.method == 'thresholding':
+      if self.method == 'thresholding': # 原论文方法
         diff_u0 = torch.reshape(diff_u0, (-1, self.h)) <= self.eps / 2
         diff_v0 = torch.reshape(diff_v0, (-1, self.h)) <= self.eps / 2
       elif self.method == 'RBF':
