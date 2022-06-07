@@ -108,7 +108,7 @@ def main():
     main_parser = argparse.ArgumentParser(description="main parser")
     subparsers = main_parser.add_subparsers(title="subcommands", dest="subcommand")
 
-    main_parser.add_argument("--pretrained", type=bool, default=True,
+    main_parser.add_argument("--pretrained", action="store_true",
                                    help="whether to use the pre-trained checkpoints")
     main_parser.add_argument("--requires_grad", type=bool, default=True,
                                    help="set to True if the model requires model gradient")
