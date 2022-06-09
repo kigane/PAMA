@@ -75,16 +75,16 @@ def train(args):
             model.save_ckpts()
             model.eval()
             tf = test_transform()
-            Ic = tf(Image.open(args.content)).to(DEVICE)
-            Is = tf(Image.open(args.style)).to(DEVICE)
-            Ic = Ic.unsqueeze(dim=0)
-            Is = Is.unsqueeze(dim=0)
+            Ic1 = Ic[0]
+            Is1 = Is[0]
+            Ic1 = Ic.unsqueeze(dim=0)
+            Is1 = Is.unsqueeze(dim=0)
             with torch.no_grad():
-                Ics = model(Ic, Is)
+                Ics = model(Ic1, Is1)
             test_table.add_data(
                 img_index+1, 
-                wandb.Image(tensor2im(Ic[0])),
-                wandb.Image(tensor2im(Is[0])),
+                wandb.Image(tensor2im(Ic1[0])),
+                wandb.Image(tensor2im(Is1[0])),
                 wandb.Image(tensor2im(Ics[0])),
             )
             wandb.log({"results_table": test_table})  # 记录表格
