@@ -1,17 +1,22 @@
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.utils.data as data
-from tqdm import tqdm
-from torchvision.utils import save_image
-from PIL import Image, ImageFile
 import wandb
+from PIL import Image, ImageFile
+from torchvision.utils import save_image
+from tqdm import tqdm
+
 from net import Net
-from utils import DEVICE, train_transform, test_transform, FlatFolderDataset, InfiniteSamplerWrapper, plot_grad_flow, adjust_learning_rate
+from utils import (DEVICE, FlatFolderDataset, InfiniteSamplerWrapper,
+                   adjust_learning_rate, plot_grad_flow, test_transform,
+                   train_transform)
+
 Image.MAX_IMAGE_PIXELS = None  
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -83,10 +88,11 @@ def train(args):
                     wandb.Image(tensor2im(Is[i])),
                     wandb.Image(tensor2im(Ics[i])),
                 )
-            wandb.log({"results_table": test_table})  # 记录表格
             model.train()
             model.args.training = True
             adjust_learning_rate(optimizer, img_index, args)
+    # wandb的table并不能每次更新
+    wandb.log({"results_table": test_table})  # 记录表格
 
 def tensor2im(tensor):
     img = (tensor.permute(1,2,0) + 1.) / 2. * 255
