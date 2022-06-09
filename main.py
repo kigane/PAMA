@@ -74,11 +74,10 @@ def train(args):
             logging.info(mes)
             model.save_ckpts()
             model.eval()
-            tf = test_transform()
             Ic1 = Ic[0]
             Is1 = Is[0]
-            Ic1 = Ic.unsqueeze(dim=0)
-            Is1 = Is.unsqueeze(dim=0)
+            Ic1 = Ic1.unsqueeze(dim=0)
+            Is1 = Is1.unsqueeze(dim=0)
             with torch.no_grad():
                 Ics = model(Ic1, Is1)
             test_table.add_data(
