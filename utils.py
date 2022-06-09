@@ -41,7 +41,8 @@ def train_transform():
     transform_list = [
         transforms.Resize(size=512),
         transforms.RandomCrop(256),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
     ]
     return transforms.Compose(transform_list)
 
@@ -49,6 +50,8 @@ def test_transform():
     transform_list = []
     transform_list.append(transforms.Resize(size=(512)))
     transform_list.append(transforms.ToTensor())
+    transform_list.append(transforms.Normalize(
+        [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]))
     transform = transforms.Compose(transform_list)
     return transform
 

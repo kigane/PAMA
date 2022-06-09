@@ -2,7 +2,6 @@ import os
 import sys
 import argparse
 import logging
-from sqlalchemy import column
 import numpy as np
 import torch
 import torch.nn as nn
@@ -74,20 +73,19 @@ def train(args):
             logging.info(mes)
             model.save_ckpts()
             model.eval()
-            Ic1 = Ic[0]
-            Is1 = Is[0]
-            Ic1 = Ic1.unsqueeze(dim=0)
-            Is1 = Is1.unsqueeze(dim=0)
+            model.args.training = False
             with torch.no_grad():
-                Ics = model(Ic1, Is1)
-            test_table.add_data(
-                img_index+1, 
-                wandb.Image(tensor2im(Ic1[0])),
-                wandb.Image(tensor2im(Is1[0])),
-                wandb.Image(tensor2im(Ics[0])),
-            )
+                Ics = model(Ic, Is)
+            for i in range(Ics.shape[0]):
+                test_table.add_data(
+                    img_index+1, 
+                    wandb.Image(tensor2im(Ic[i])),
+                    wandb.Image(tensor2im(Is[i])),
+                    wandb.Image(tensor2im(Ics[i])),
+                )
             wandb.log({"results_table": test_table})  # 记录表格
             model.train()
+            model.args.training = True
             adjust_learning_rate(optimizer, img_index, args)
 
 def tensor2im(tensor):

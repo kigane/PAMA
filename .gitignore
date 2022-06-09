@@ -1,5 +1,6 @@
 data
 checkpoints
 wandb
+t.ipynb
 *.log
 **__pycache__
