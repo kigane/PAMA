@@ -2,12 +2,15 @@ import os
 import sys
 import argparse
 import logging
+from sqlalchemy import column
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.utils.data as data
 from tqdm import tqdm
 from torchvision.utils import save_image
 from PIL import Image, ImageFile
+import wandb
 from net import Net
 from utils import DEVICE, train_transform, test_transform, FlatFolderDataset, InfiniteSamplerWrapper, plot_grad_flow, adjust_learning_rate
 Image.MAX_IMAGE_PIXELS = None  
@@ -19,7 +22,12 @@ def train(args):
                     format='%(asctime)s %(levelname)s: %(message)s', 
                     level=logging.INFO, 
                     datefmt='%Y-%m-%d %H:%M:%S')
-
+    wandb.init(project="PAMA",  # wandb项目名称
+            #    group=config.group,  # 记录的分组，用于过滤
+            #    job_type=config.job_type,  # 记录的类型，用于过滤
+               config=args)  # config必须接受字典对象
+    columns = ['iter', 'content', 'style', 'result']
+    test_table = wandb.Table(columns=columns)  # 创建表格，确定表头
     mes = "current pid: " + str(os.getpid())
     print(mes)
     logging.info(mes)
@@ -52,6 +60,9 @@ def train(args):
         pbar.set_postfix({
             'loss': loss.item()
         })
+        wandb.log({
+            "loss": loss.item()
+        }, step=img_index+1)
         loss.sum().backward()
         
         #plot_grad_flow(GMMN.named_parameters())
@@ -62,8 +73,28 @@ def train(args):
             mes = "iteration: " + str(img_index+1) + " loss: "  + str(loss.sum().item())
             logging.info(mes)
             model.save_ckpts()
+            model.eval()
+            tf = test_transform()
+            Ic = tf(Image.open(args.content)).to(DEVICE)
+            Is = tf(Image.open(args.style)).to(DEVICE)
+            Ic = Ic.unsqueeze(dim=0)
+            Is = Is.unsqueeze(dim=0)
+            with torch.no_grad():
+                Ics = model(Ic, Is)
+            test_table.add_data(
+                img_index+1, 
+                wandb.Image(tensor2im(Ic[0])),
+                wandb.Image(tensor2im(Is[0])),
+                wandb.Image(tensor2im(Ics[0])),
+            )
+            wandb.log({"results_table": test_table})  # 记录表格
+            model.train()
             adjust_learning_rate(optimizer, img_index, args)
 
+def tensor2im(tensor):
+    img = (tensor.permute(1,2,0) + 1.) / 2. * 255
+    img = img.data.cpu().float().numpy()
+    return img.astype(np.uint8)
 
 def eval(args):
     mes = "current pid: " + str(os.getpid())
